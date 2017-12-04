@@ -21,7 +21,7 @@ import imageio
 warnings.filterwarnings('ignore')
 
 
-def makeMovie(cube, redshift, center, name, numframes=30, thresh=0, frames=30):
+def makeMovie(cube, redshift, center, name, thresh=0, frames=30, scalefactor=3.0):
     '''Make the movie'''
 
     ########### READ THE DATA CUBE ####################
@@ -55,8 +55,8 @@ def makeMovie(cube, redshift, center, name, numframes=30, thresh=0, frames=30):
     center_channel = (np.abs(wavelength - center)).argmin()
     #print("Emission line centroid for {} is in channel {}".format(name,center_channel))
 
-    movie_start = center_channel - numframes
-    movie_end = center_channel + numframes
+    movie_start = center_channel - frames
+    movie_end = center_channel + frames
 
     slices_of_interest = np.arange(movie_start, movie_end, 1)
 
@@ -83,8 +83,8 @@ def makeMovie(cube, redshift, center, name, numframes=30, thresh=0, frames=30):
         cont_sub_image[cont_sub_image < thresh] = np.nan
 
         sizes = np.shape(cont_sub_image)
-        height = float(sizes[0]) * 3.0
-        width = float(sizes[1]) * 3.0
+        height = float(sizes[0]) * scalefactor
+        width = float(sizes[1]) * scalefactor
          
         fig = plt.figure()
         fig.set_size_inches(width/height, 1, forward=False)
@@ -139,6 +139,7 @@ def main():
     parser.add_argument('-n', '--name', help="Target name", type=str, default=None)
     parser.add_argument('-t', '--thresh', default=None, type=float)
     parser.add_argument('-f', '--frames', help="Number of frames in your movie", default=30, type=int)
+    parser.add_argument('-s', '--scalefactor', help="Scale factor for GIF DPI", default=3.0, type=float)
 
     args = parser.parse_args()
 
@@ -147,11 +148,12 @@ def main():
     restwav = args.restwav
     name = args.name
     thresh = args.thresh
-    frames = args.frames/2
+    frames = args.frames
+    scalefactor = args.scalefactor
 
     center = restwav * (1+redshift)
 
-    makeMovie(cube, redshift, center, name, thresh=thresh, frames=frames)
+    makeMovie(cube, redshift, center, name, thresh=thresh, frames=frames, scalefactor=scalefactor)
 
 if __name__ == '__main__':
     main()
