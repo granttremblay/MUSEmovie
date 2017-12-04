@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore')
 
 carsdata = '../data/MUSE/*/*binned.fits*'
 line_restwav = 6563  # Set the rest wavelength of the emission line you'd like
-scalefator = 2.0  # Set the DPI scaling of the output image.
+scalefactor = 2.0  # Set the DPI scaling of the output image.
 
 cubes = []
 for cube in glob.glob(carsdata):
