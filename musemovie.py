@@ -21,7 +21,7 @@ import imageio
 warnings.filterwarnings('ignore')
 
 
-def makeMovie(cube, redshift, center, name, thresh=0, frames=30, scalefactor=3.0, contsub=False, whitebg=False, linear=False):
+def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=3.0, contsub=False, whitebg=False, linear=False):
     '''Make the movie'''
 
     ########### READ THE DATA CUBE ####################
@@ -85,7 +85,8 @@ def makeMovie(cube, redshift, center, name, thresh=0, frames=30, scalefactor=3.0
         elif contsub is False:
             final_image_data = data[slice, :, :]
 
-        final_image_data[final_image_data < thresh] = np.nan
+        if thresh is not None:
+            final_image_data[final_image_data < thresh] = np.nan
 
         sizes = np.shape(final_image_data)
         height = float(sizes[0]) * scalefactor
@@ -105,7 +106,7 @@ def makeMovie(cube, redshift, center, name, thresh=0, frames=30, scalefactor=3.0
             cmap.set_bad('black', 1)
 
         if linear is True:
-            ax.imshow(final_image_data, origin='lower', cmap=cmap, interpolation='None')
+            ax.imshow(final_image_data, origin='lower',  vmax=2000, cmap=cmap, interpolation='None')           
         elif linear is False:
             ax.imshow(final_image_data, origin='lower',
                       norm=LogNorm(), cmap=cmap, interpolation='None')            

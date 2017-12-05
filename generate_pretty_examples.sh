@@ -38,6 +38,10 @@ python musemovie.py pretty_cubes/cartwheel.fits -z 0.03018 -r 6563 -n "Cartwheel
 
 python musemovie.py pretty_cubes/3c75.fits -z 0.023153 -r 6563 -n "3c75" -t 5 -s 3.0 -f 30 --contsub
 
-python musemovie.py pretty_cubes/eagle_0.fits -z 0.0 -r 6000 -n "Eagle_0" -t 20 -s 3.0 -f 300
+python musemovie.py pretty_cubes/eagle_nebula_MUSE_full.fits -z 0.0 -r 6563 -t 20 -n "Eagle_FULL" -s 2.0 -f 30 
 
 python musemovie.py pretty_cubes/A68.fits -z 0.255000 -r 5500 -n "A68" -t 5 -s 3.0 -f 300
+
+python musemovie.py pretty_cubes/saturn_nebula.fits -z 0.0 -r 4934 -n "saturn_nebula" -t 55 -s 3.0 -f 30
+
+python musemovie.py pretty_cubes/saturn_nebula.fits -z 0.0 -r 6563 -n "saturn_nebula_contsub" -t 35 -s 3.0 -f 40 --contsub
