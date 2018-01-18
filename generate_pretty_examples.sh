@@ -45,3 +45,7 @@ python musemovie.py pretty_cubes/A68.fits -z 0.255000 -r 5500 -n "A68" -t 5 -s 3
 python musemovie.py pretty_cubes/saturn_nebula.fits -z 0.0 -r 4934 -n "saturn_nebula" -t 55 -s 3.0 -f 30
 
 python musemovie.py pretty_cubes/saturn_nebula.fits -z 0.0 -r 6563 -n "saturn_nebula_contsub" -t 35 -s 3.0 -f 40 --contsub
+
+python musemovie.py /Users/grant/Science/museBCGs/cubes/A2052_MUSE_cube.fits -z 0.035491 -n "a2052" -t 5 -f 30 -s 1.5
+
+python musemovie.py /Users/grant/Science/museBCGs/cubes/A2052_MUSE_cube.fits -z 0.035491 -n "a2052_contsub" -t 15 -f 30 -s 2 --contsub
