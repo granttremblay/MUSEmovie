@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Don't save the .png files
+*.png
+
 # C extensions
 *.so
 
