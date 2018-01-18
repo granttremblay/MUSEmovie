@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import glob
 
@@ -24,7 +26,7 @@ warnings.filterwarnings('ignore')
 def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=3.0, contsub=False, whitebg=False, linear=False):
     '''Make the movie'''
 
-    ########### READ THE DATA CUBE ####################
+    # Read the data cube
     hdulist = fits.open(cube)
 
     data = hdulist[0].data
@@ -60,7 +62,7 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
 
     slices_of_interest = np.arange(movie_start, movie_end, 1)
 
-    ########### CREATE AND SCRUB THE TEMPORARY FRAMESTORE ##############
+    # Create and scrub the temporary framestore directory
     temp_movie_dir = "framestore/"
     if not os.path.exists(temp_movie_dir):
         os.makedirs(temp_movie_dir)
@@ -69,16 +71,16 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
     png_files = []
 
     # Clean the temporary movie directory first
-    # If you don't remove all "old" movie frames, your gif is gonna be messed up.
+    # If you don't remove all "old" movie frames, the gif will be messed up.
     for f in glob.glob(temp_movie_dir + "*.png"):
         os.remove(f)
-    #####################################################################
 
     print("Making movie for {} at z={}. Line centroid is in channel {}".format(
         name, round(redshift, 3), center_channel))
 
     for i, slice in enumerate(slices_of_interest):
-        # Perform a dumb continuum subtraction. Risky if you land on another line.
+        # Perform a dumb continuum subtraction.
+        # Risky if you land on another line.
         if contsub is True:
             final_image_data = data[slice, :, :] - \
                 data[center_channel - 200, :, :]
@@ -98,7 +100,7 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
         ax.set_axis_off()
         fig.add_axes(ax)
 
-        #cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True)
+        # cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True)
         cmap = cm.inferno
         if whitebg is True:
             cmap.set_bad('white', 1)
@@ -106,10 +108,11 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
             cmap.set_bad('black', 1)
 
         if linear is True:
-            ax.imshow(final_image_data, origin='lower',  vmax=2000, cmap=cmap, interpolation='None')           
+            ax.imshow(final_image_data, origin='lower',
+                      vmax=2000, cmap=cmap, interpolation='None')
         elif linear is False:
             ax.imshow(final_image_data, origin='lower',
-                      norm=LogNorm(), cmap=cmap, interpolation='None')            
+                      norm=LogNorm(), cmap=cmap, interpolation='None')
 
         fig.subplots_adjust(bottom=0)
         fig.subplots_adjust(top=1)
@@ -120,12 +123,11 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
         png_files.append(temp_movie_dir + '{}'.format(i) + '.png')
         plt.close(fig)
 
-    ########### CREATE AND SCRUB THE GIF DIRECTORY ##############
+    # Create and scrub the GIF directory
     gif_output_dir = "movies/"
     if not os.path.exists(gif_output_dir):
         os.makedirs(gif_output_dir)
         print("Saving output movies to '{}'.".format(gif_output_dir))
-    #############################################################
 
     gif_name = gif_output_dir + '{}.gif'.format(name)
     gif_frames = []
