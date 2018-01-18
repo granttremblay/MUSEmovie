@@ -1,2 +1,3 @@
-# MUSEmovie
-Make a simple GIF movie of a MUSE cube
+## Pretty movies from MUSE datacubes
+
+![A2052](movies/a2052.gif)
