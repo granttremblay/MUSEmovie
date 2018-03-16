@@ -26,9 +26,10 @@ warnings.filterwarnings('ignore')
 def main():
 
     muse_data_directory = '/Users/grant/Storage/Data/MUSE/Hamer/'
+    movie_working_directory = '/Users/grant/Dropbox/SnowClusterMovies/'
     line_restwav = 6563 # In Angstroms
     scalefactor = 2.0
-    numframes=60
+    numframes=30
 
     name_dictionary, coordinate_dictionary = construct_filename_dictionaries(muse_data_directory)
 
@@ -40,7 +41,22 @@ def main():
     # You therefore need to iterate on the INTERSECTION of these dictionaries!
 
     for cube, name in name_dictionary.items():
-        makeMovie(muse_data_directory, cube, name, redshift_dictionary[name], emission_line_center_dictionary[name], numframes=numframes, scalefactor=scalefactor, logscale=False)
+        if name in redshift_dictionary:
+        	makeMovie(movie_working_directory, 
+                          cube, 
+                          name, 
+                          redshift_dictionary[name], 
+                          emission_line_center_dictionary[name], 
+                          numframes=numframes, 
+                          scalefactor=scalefactor,
+                          thresh=1.0,
+                          cmap=cm.plasma,
+                          cmap_nancolor='black', 
+                          logscale=True, 
+                          contsub=False
+                          )
+        else:
+            print("Skipping movie for {}, it still needs a redshift".format(name))
 
 
 def map_linecenters(redshift_dictionary, line_restwav):
@@ -78,7 +94,8 @@ def construct_filename_dictionaries(muse_data_directory):
         target_name = hdr['OBJECT']
 
         name_corrections = {"Centaurus": "NGC 4696",
-                            "Hydra": "Hydra A"}
+                            "Hydra": "Hydra A", 
+                            "R0338": "RX J0338.6+0958"}
 
         if target_name in name_corrections:
             corrected_target_name = name_corrections[target_name]
@@ -119,6 +136,7 @@ def query_ned_for_redshifts(name_dictionary, coordinate_dictionary):
             z = Ned.query_region(coordinate_dictionary[name], radius=20 * u.arcsec, equinox='J2000.0')["Redshift"][0]
             if z == "--":
                 continued_failures.append(name)
+                print("Still cannot find a redshift for {}, skipping it".format(name))
             elif z < 1.0: # none of these sources are high redshift, this is a dumb sanity check:
                 redshift_dictionary["{}".format(name)] = z
                 print("{} is at RA={}, Dec={}. NED finds a redshift of {}.".format(name, coordinate_dictionary[name].ra, coordinate_dictionary[name].dec, z))
@@ -138,7 +156,7 @@ def query_ned_for_redshifts(name_dictionary, coordinate_dictionary):
 
 
 
-def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefactor=2.0, logscale=False, contsub=False):
+def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefactor=2.0, cmap=cm.magma, thresh=None, cmap_nancolor='black', logscale=False, contsub=False):
     '''Make the movie'''
 
     ########### READ THE DATA CUBE ####################
@@ -187,7 +205,7 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
         os.remove(f)
     #####################################################################
 
-    print("Making movie for {} at z={}. Line centroid is in channel {}.".format(
+    print("\nMaking movie for {} at z={}. Line centroid is in channel {}.".format(
         name, round(redshift, 3), center_channel))
 
     for i, slice in enumerate(slices_of_interest):
@@ -200,6 +218,9 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
         elif contsub is False:
             image = data[slice, :, :]
 
+        if thresh is not None:
+            image[image < thresh] = np.nan
+
         sizes = np.shape(image)
         height = float(sizes[0]) * scalefactor
         width = float(sizes[1]) * scalefactor
@@ -211,8 +232,7 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
         fig.add_axes(ax)
 
         #cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True)
-        cmap = cm.magma
-        cmap.set_bad('black', 1)
+        cmap.set_bad(cmap_nancolor, 1)
 
         if logscale is True:
             ax.imshow(image, origin='lower', norm=LogNorm(),
