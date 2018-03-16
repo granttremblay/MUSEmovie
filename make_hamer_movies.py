@@ -29,7 +29,13 @@ def main():
     movie_working_directory = '/Users/grant/Dropbox/SnowClusterMovies/Hamer/'
     line_restwav = 6563 # In Angstroms
     scalefactor = 2.0
+    cmap = cm.plasma
+    #cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True) # use a white background with this
+    thresh = 40
     numframes=30
+    
+    overwrite = True # If True, first scrub the movie directory of all previously existing GIFs
+    redshift_id_only = False # If True, skip the moviemaking process and simply run the Filename/Redshift identification functions
 
     name_dictionary, coordinate_dictionary = construct_filename_dictionaries(muse_data_directory)
 
@@ -37,26 +43,35 @@ def main():
 
     emission_line_center_dictionary = map_linecenters(redshift_dictionary, line_restwav)
 
-    # The Name dictionary may have values MISSING from the Redshift Dictionary!
-    # You therefore need to iterate on the INTERSECTION of these dictionaries!
+    if overwrite is True:
+        print("Movie directory overwrite is TRUE.")
+        existing_gifs = glob.glob(os.path.join(movie_working_directory, "movies/*.gif"))
+        if len(existing_gifs) > 0:
+            print("Existing GIFs found. Scrubbing them.")
+        elif len(existing_gifs) == 0:
+            print("Movie directory is clean, nothing to remove.")  
+        for gif in existing_gifs:
+            print("Removing {}.".format(gif))
+            os.remove(gif)
 
-    for cube, name in name_dictionary.items():
-        if name in redshift_dictionary:
-        	makeMovie(movie_working_directory, 
-                          cube, 
-                          name, 
-                          redshift_dictionary[name], 
-                          emission_line_center_dictionary[name], 
-                          numframes=numframes, 
-                          scalefactor=scalefactor,
-                          thresh=25.0,
-                          cmap=cm.plasma,
-                          cmap_nancolor='black', 
-                          logscale=True, 
-                          contsub=True
-                          )
-        else:
-            print("Skipping movie for {}, it still needs a redshift".format(name))
+    if redshift_id_only is not True: 
+        for cube, name in name_dictionary.items():
+            if name in redshift_dictionary:
+            	    makeMovie(movie_working_directory,  
+                              cube,
+                              name,
+                              redshift_dictionary[name], 
+                              emission_line_center_dictionary[name], 
+                              numframes=numframes, 
+                              scalefactor=scalefactor,
+                              thresh=thresh,
+                              cmap=cm.plasma,
+                              background_color='black', 
+                              logscale=True, 
+                              contsub=True
+                              )
+            else:
+                print("Skipping movie for {}, it still needs a redshift".format(name))
 
 
 def map_linecenters(redshift_dictionary, line_restwav):
@@ -95,7 +110,13 @@ def construct_filename_dictionaries(muse_data_directory):
 
         name_corrections = {"Centaurus": "NGC 4696",
                             "Hydra": "Hydra A", 
-                            "R0338": "RX J0338.6+0958"}
+                            "R0338": "RX J0338.6+0958",
+                            "P0745": "PKS 0745-191",
+                            "R0821": "RX J0821.0+0752",
+                            "R0944": "RXC J0944.6-2633",
+                            "S555": "Abell S0555",
+                            "R1539": "RXC J1539.5-8335",
+                            "Z348": "ZwCl 0104.4+0048"}
 
         if target_name in name_corrections:
             corrected_target_name = name_corrections[target_name]
@@ -134,9 +155,10 @@ def query_ned_for_redshifts(name_dictionary, coordinate_dictionary):
         except:
             print("Cannot resolve redshift using NAME {}, trying coordinate search.".format(name))
             z = Ned.query_region(coordinate_dictionary[name], radius=20 * u.arcsec, equinox='J2000.0')["Redshift"][0]
-            if z == "--":
+            # If this fails, it will silently set Z to a numpy.ma MaskedConstant (looks like '--')
+            if np.ma.is_masked(z) is True:
                 continued_failures.append(name)
-                print("Still cannot find a redshift for {}, skipping it".format(name))
+                print("Still cannot find a redshift for {}, skipping it.".format(name))
             elif z < 1.0: # none of these sources are high redshift, this is a dumb sanity check:
                 redshift_dictionary["{}".format(name)] = z
                 print("{} is at RA={}, Dec={}. NED finds a redshift of {}.".format(name, coordinate_dictionary[name].ra, coordinate_dictionary[name].dec, z))
@@ -146,8 +168,8 @@ def query_ned_for_redshifts(name_dictionary, coordinate_dictionary):
         print("In the meantime, they'll be skipped by the movie maker.")
     elif len(continued_failures) == 0:
         print("It SEEMS like all redshifts have successfully been found, ")
-        print("but CHECK THESE MANUALLY nonetheless! ")
 
+    print("Here are your (hopefully) successful redshift identifications - check these!")
     print("                  NAME = Z")
     for name, z in redshift_dictionary.items():
         print("               {} = {}".format(name, z))
@@ -156,7 +178,7 @@ def query_ned_for_redshifts(name_dictionary, coordinate_dictionary):
 
 
 
-def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefactor=2.0, cmap=cm.magma, thresh=None, cmap_nancolor='black', logscale=False, contsub=False):
+def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefactor=2.0, cmap=cm.plasma, background_color='black', thresh=None, logscale=False, contsub=False):
     '''Make the movie'''
 
     ########### READ THE DATA CUBE ####################
@@ -222,6 +244,7 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
             image[image < thresh] = np.nan
 
         sizes = np.shape(image)
+        # Scale up the image by the scalefactor - higher means a larger GIF movie, in MB and inches. 
         height = float(sizes[0]) * scalefactor
         width = float(sizes[1]) * scalefactor
 
@@ -231,8 +254,8 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
         ax.set_axis_off()
         fig.add_axes(ax)
 
-        #cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True)
-        cmap.set_bad(cmap_nancolor, 1)
+        # Set the background color (usually black or white, depending on the cmap)
+        cmap.set_bad(background_color, 1)
 
         if logscale is True:
             ax.imshow(image, origin='lower', norm=LogNorm(),
@@ -249,20 +272,23 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
         png_files.append(temp_movie_dir + '{}'.format(i) + '.png')
         plt.close(fig)
 
-    ########### CREATE AND SCRUB THE GIF DIRECTORY ##############
+    # Create and scrub the GIF directory
     gif_output_dir = workingdir + "movies/"
     if not os.path.exists(gif_output_dir):
         os.makedirs(gif_output_dir)
         print("Saving output movies to '{}'.".format(gif_output_dir))
-    #############################################################
 
-    gif_name = gif_output_dir + '{}.gif'.format(name)
+    # Set the GIF filenames
+    i = 0
+
+    # Check if that gif name already exists:
+    while os.path.exists(gif_output_dir + '{}_{}.gif'.format(name, i)):
+        i += 1
+    
+    gif_name = gif_output_dir + '{}_{}.gif'.format(name.replace(' ', '-'), i)
+
+
     gif_frames = []
-
-    # Remove any old GIFs you might have made
-    if os.path.isfile(gif_name):
-        os.remove(gif_name)
-
     for filename in png_files:
         gif_frames.append(imageio.imread(filename))
 
