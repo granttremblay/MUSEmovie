@@ -32,10 +32,11 @@ def main():
     scalefactor = 2.0
     cmap = cm.plasma
     #cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True) # use a white background with this
+    background_color = 'white'
     thresh = 40
     numframes=30
     
-    overwrite = True # If True, first scrub the movie directory of all previously existing GIFs
+    overwrite = False # If True, first scrub the movie directory of all previously existing GIFs
     redshift_id_only = False # If True, skip the moviemaking process and simply run the Filename/Redshift identification functions
 
     name_dictionary, coordinate_dictionary = construct_filename_dictionaries(muse_data_directory)
@@ -67,7 +68,7 @@ def main():
                               scalefactor=scalefactor,
                               thresh=thresh,
                               cmap=cm.plasma,
-                              background_color='black', 
+                              background_color=background_color, 
                               logscale=True, 
                               contsub=True
                               )
