@@ -26,7 +26,7 @@ warnings.filterwarnings('ignore')
 def main():
 
     muse_data_directory = '/Users/grant/Storage/Data/MUSE/Hamer/'
-    movie_working_directory = '/Users/grant/Dropbox/SnowClusterMovies/'
+    movie_working_directory = '/Users/grant/Dropbox/SnowClusterMovies/Hamer/'
     line_restwav = 6563 # In Angstroms
     scalefactor = 2.0
     numframes=30
@@ -49,11 +49,11 @@ def main():
                           emission_line_center_dictionary[name], 
                           numframes=numframes, 
                           scalefactor=scalefactor,
-                          thresh=1.0,
+                          thresh=25.0,
                           cmap=cm.plasma,
                           cmap_nancolor='black', 
                           logscale=True, 
-                          contsub=False
+                          contsub=True
                           )
         else:
             print("Skipping movie for {}, it still needs a redshift".format(name))
@@ -212,7 +212,7 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
 
         if contsub is True:
             # Perform a dumb continuum subtraction. Risky if you land on another line.
-            cont_sub_image = data[slice, :, :] - data[center_channel - 400, :, :]
+            cont_sub_image = data[slice, :, :] - data[center_channel - 200, :, :]
             cont_sub_image[cont_sub_image < 0.005] = np.nan
             image = cont_sub_image
         elif contsub is False:
