@@ -101,7 +101,7 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
         fig.add_axes(ax)
 
         # cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True)
-        cmap = cm.inferno
+        cmap = cm.plasma
         if whitebg is True:
             cmap.set_bad('white', 1)
         else:
