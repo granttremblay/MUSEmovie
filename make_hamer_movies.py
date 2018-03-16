@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import time
 
@@ -116,15 +117,19 @@ def construct_filename_dictionaries(muse_data_directory):
                             "R0944": "RXC J0944.6-2633",
                             "S555": "Abell S0555",
                             "R1539": "RXC J1539.5-8335",
-                            "Z348": "ZwCl 0104.4+0048"}
+                            "Z348": "ZwCl 0104.4+0048",
+                            "Abell 2597 (DATA)": "Abell 2597"}
 
         if target_name in name_corrections:
             corrected_target_name = name_corrections[target_name]
             print("Renaming {} to {}".format(target_name, corrected_target_name))
             target_name = corrected_target_name
 
-        ra = hdr['RA']
-        dec = hdr['DEC']
+        try:
+            ra = hdr['RA']
+            dec = hdr['DEC']
+        except:
+            sys.exit("File {} (target = {}) doesn't have RA/Dec in header. Please fix or remove.".format(fitsfile,target_name))
 
         if any(flag in target_name for flag in red_flags):
             skipped_files.append(fitsfile.split("/")[-1])
