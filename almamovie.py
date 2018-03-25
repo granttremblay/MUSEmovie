@@ -83,7 +83,7 @@ def makeMovie(cube, name, thresh=None, scalefactor=3.0):
 
         #cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True)
         cmap = cm.viridis
-        cmap.set_bad('black', 1)
+        cmap.set_bad('white', 1)
 
         ax.imshow(final_image_data, origin='lower', cmap=cmap, interpolation='None')     
 

@@ -30,9 +30,9 @@ def main():
     movie_working_directory = '/Users/grant/Dropbox/SnowClusterMovies/Hamer/'
     line_restwav = 6563 # In Angstroms
     scalefactor = 2.0
-    cmap = cm.plasma
+    cmap = cm.magma
     #cmap = sns.cubehelix_palette(20, light=0.95, dark=0.15, as_cmap=True) # use a white background with this
-    background_color = 'white'
+    background_color = 'black'
     thresh = 40
     numframes=30
     
@@ -70,7 +70,8 @@ def main():
                               cmap=cm.plasma,
                               background_color=background_color, 
                               logscale=True, 
-                              contsub=True
+                              contsub=True,
+                              transparent=True
                               )
             else:
                 print("Skipping movie for {}, it still needs a redshift".format(name))
@@ -184,7 +185,7 @@ def query_ned_for_redshifts(name_dictionary, coordinate_dictionary):
 
 
 
-def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefactor=2.0, cmap=cm.plasma, background_color='black', thresh=None, logscale=False, contsub=False):
+def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefactor=2.0, cmap=cm.plasma, background_color='black', thresh=None, logscale=False, contsub=False, transparent=False):
     '''Make the movie'''
 
     ########### READ THE DATA CUBE ####################
@@ -273,8 +274,8 @@ def makeMovie(workingdir, cube, name, redshift, center, numframes=30, scalefacto
         fig.subplots_adjust(top=1)
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
-
-        fig.savefig(temp_movie_dir + '{}'.format(i) + '.png', dpi=height)
+    
+        fig.savefig(temp_movie_dir + '{}'.format(i) + '.png', dpi=height, transparent=transparent)
         png_files.append(temp_movie_dir + '{}'.format(i) + '.png')
         plt.close(fig)
 
