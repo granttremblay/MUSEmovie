@@ -12,6 +12,8 @@ from astropy.wcs import WCS
 
 import numpy as np
 
+from tqdm import tqdm as progressbar
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
@@ -23,7 +25,7 @@ import imageio
 warnings.filterwarnings('ignore')
 
 
-def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=3.0, contsub=False, whitebg=False, linear=False):
+def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=3.0, vmin=None, vmax=None, contsub=False, whitebg=False, linear=False):
     '''Make the movie'''
 
     # Read the data cube
@@ -78,7 +80,7 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
     print("Making movie for {} at z={}. Line centroid is in channel {}".format(
         name, round(redshift, 3), center_channel))
 
-    for i, slice in enumerate(slices_of_interest):
+    for i, slice in enumerate(progressbar(slices_of_interest)):
         # Perform a dumb continuum subtraction.
         # Risky if you land on another line.
         if contsub is True:
@@ -108,11 +110,11 @@ def makeMovie(cube, redshift, center, name, thresh=None, frames=30, scalefactor=
             cmap.set_bad('black', 1)
 
         if linear is True:
-            ax.imshow(final_image_data, origin='lower',
-                      vmax=2000, cmap=cmap, interpolation='None')
+            ax.imshow(final_image_data, origin='lower', vmin=vmin,
+                      vmax=vmax, cmap=cmap, interpolation='None')
         elif linear is False:
             ax.imshow(final_image_data, origin='lower',
-                      norm=LogNorm(), cmap=cmap, interpolation='None')
+                      norm=LogNorm(), vmin=vmin, vmax=vmax, cmap=cmap, interpolation='None')
 
         fig.subplots_adjust(bottom=0)
         fig.subplots_adjust(top=1)
@@ -167,6 +169,12 @@ def main():
     parser.add_argument('--linear', help="The scaling is LogNorm by default. Set to linear instead?",
                         default=False, action='store_true')
 
+    parser.add_argument('--vmin', help="Minimum pixel value for color bar",
+                        type=float, default=None)
+
+    parser.add_argument('--vmax', help="Maximum pixel value for color bar",
+                        type=float, default=None)
+
     args = parser.parse_args()
 
     cube = args.cube
@@ -183,7 +191,7 @@ def main():
     center = restwav * (1 + redshift)
 
     makeMovie(cube, redshift, center, name, thresh=thresh,
-              frames=frames, scalefactor=scalefactor, contsub=contsub, whitebg=whitebg, linear=linear)
+              frames=frames, scalefactor=scalefactor, vmin=args.vmin, vmax=args.vmax, contsub=contsub, whitebg=whitebg, linear=linear)
 
 
 if __name__ == '__main__':
