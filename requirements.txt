@@ -1,0 +1,5 @@
+seaborn
+matplotlib
+numpy
+tqdm
+imageio
