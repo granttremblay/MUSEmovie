@@ -7,3 +7,10 @@ I'll write some proper documentation ASAP, I promise. Meanwhile, you can run `mu
 ```python
 python musemovie.py muse_datacube.fits -z 0.004283 -r 6563 -n "M87" -t 45 -s 3.0 -f 25
 ```
+
+
+For SITELLE data, you can use the following:
+
+```python
+python sitellemovie.py sitelle_datacube.fits -z 0.004283 -r 15245 -n M87
+```
